@@ -1,0 +1,4 @@
+myenv\Scripts\activate.bat
+
+pip install fastapi
+pip install uvicorn
