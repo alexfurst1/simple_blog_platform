@@ -8,6 +8,7 @@ file_path = "posts.json"
 posts = []
 
 def load_file(file_path):
+    global posts
     try:
         with open(file_path,"r") as f:
             posts = json.load(f)
@@ -20,6 +21,7 @@ def load_file(file_path):
         posts = []
 
 def save_file(file_path):
+    global posts
     try:
         with open(file_path, "w") as f:
             json.dump(posts,f,indent=4)
@@ -30,6 +32,10 @@ def save_file(file_path):
         print("json decode error")
 
 
+@app.get("/") #root directory 
+def root():
+    return {"Hello world"}
+
 #how to define a path in FastAPI
 @app.get("/posts/{id}") # this is an app decorator, and defines a path for the HTTP GET method. The path is "/",
 #which is our root directory
@@ -39,16 +45,30 @@ def get_post(id: int):
     for post in posts:
         if post["id"] == id:
             return post
-    # return a blog post with a certain ID
+    # return a blog post with a certain ID, or return all posts
+
+@app.get("/posts")
+def get_all(filter:str=None):
+    load_file(file_path)
+    if filter:
+        filter = filter.lower()
+        filtered_posts = [
+            post for post in posts
+            if filter in post["tags"]
+        ]
+        return filtered_posts
+    return posts
+            
 
 @app.post("/posts")
 def post_blog(title:str,content:str,category:str,tags:list[str]):
-    timestamp = datetime.now()
+    timestamp = str(datetime.now())
     load_file(file_path)
-    id = len(posts)
+    id = max([p["id"] for p in posts], default=0) + 1
     posts.append({"id":id,"title":title,"content":content,"category":category,"tags":tags,"createdAt":timestamp,"updatedAt":timestamp})
-    if save_file(file_path):
-        print("blog posted successfully")
+    save_file(file_path)
+    print("blog posted successfully")
+    return posts[-1]
 
 @app.put("/posts/{id}")
 def update_blog(id:int,new_title:str,new_content:str,new_category:str,new_tags:list):
@@ -59,8 +79,10 @@ def update_blog(id:int,new_title:str,new_content:str,new_category:str,new_tags:l
             post["content"] = new_content
             post["category"] = new_category
             post["tags"] = new_tags
-            post["updatedAt"] = datetime.now()
-    save_file(file_path)
+            post["updatedAt"] = str(datetime.now())
+            save_file(file_path)
+            return post
+    
 
 
 @app.delete("/posts/{id}")
