@@ -2,3 +2,6 @@ myenv\Scripts\activate.bat
 
 pip install fastapi
 pip install uvicorn
+pip install python-multipart
+pip install fastapi[standard]
+pip install sqlalchemy pymysql
