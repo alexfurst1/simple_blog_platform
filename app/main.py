@@ -1,59 +1,30 @@
 from fastapi import FastAPI, HTTPException
 import json
 from datetime import datetime
-from typing import List
-from pydantic import BaseModel
 from fastapi import status
+from app import schemas,crud,models,database
+from .database import SessionLocal, engine, Base
+
 
 app = FastAPI()
 
-file_path = "posts.json"
-posts = []
+Base.metadata.create_all(bind=engine) #Creates all database tables that are defined in my SQLAlchemy models if they don’t already exist.
 
-class BlogPost(BaseModel):
-    title: str
-    content: str
-    category: str
-    tags: List[str]
-
-def load_file(file_path):
-    global posts
+def get_db():
+    db = SessionLocal()
     try:
-        with open(file_path,"r") as f:
-            posts = json.load(f)
-            print("data successfully loaded")
-    except FileNotFoundError:
-        print("file not found")
-        posts = []
-    except json.JSONDecodeError:
-        print("file exists, but may be corrupted")
-        posts = []
-
-def save_file(file_path):
-    global posts
-    try:
-        with open(file_path, "w") as f:
-            json.dump(posts,f,indent=4)
-            print("data successfully updated")
-    except FileNotFoundError:
-        print("file not found")
-
+        yield db
+    finally:
+        db.close()
 
 @app.get("/") #root directory 
 def root():
     return {"message":"Hello world"}
 
 #how to define a path in FastAPI
-@app.get("/posts/{id}",status_code=200) # this is an app decorator, and defines a path for the HTTP GET method. The path is "/",
-#which is our root directory
-# REST read function
-def get_post(id: int):
-    load_file(file_path)
-    post = next((p for p in posts if p["id"] == id), None)
-    if post:
-        return post
-    raise HTTPException(status_code=404,detail="Post not found")
-    # return a blog post with a certain ID, or return all posts
+@app.get("/posts/{id}",status_code=200, ) # this is an app decorator, and defines a path for the HTTP GET method. 
+def get_post(post_id: int, db: Session = Depends(get_db)):
+
 
 # example query parameter: localhost:9999/posts?filter=comedy
 
