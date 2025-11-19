@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-URL_DATABASE = 'mysql+pymysql://blog_user:password@localhost:3306/simple_blog_platform'
+URL_DATABASE = 'mysql+mysqlconnector://blog_user:password@localhost:3306/simple_blog_platform'
 
 engine = create_engine(URL_DATABASE)
 

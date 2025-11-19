@@ -5,3 +5,6 @@ pip install uvicorn
 pip install python-multipart
 pip install fastapi[standard]
 pip install sqlalchemy pymysql
+pip install cryptography
+pip install mysql-connector-python
+
